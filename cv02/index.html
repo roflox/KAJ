@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="http://todomvc.com/examples/vanilla-es6/node_modules/todomvc-common/base.css">
+    <link rel="stylesheet" href="http://todomvc.com/examples/vanilla-es6/node_modules/todomvc-app-css/index.css">
+    <title>Lecture 02</title>
+</head>
+<body data-gr-c-s-loaded="true">
+<section class="todoapp">
+    <header class="header">
+        <h1>todos</h1>
+        <input class="new-todo" placeholder="What needs to be done?" autofocus="">
+    </header>
+    <section class="main">
+        <input class="toggle-all" type="checkbox">
+        <label for="toggle-all">Mark all as complete</label>
+        <ul class="todo-list">
+            <li><input class="toggle" type="checkbox" checked=""> <label>Hi</label>
+                <button class="destroy"></button>
+            </li>
+            <li><input class="toggle" type="checkbox"> <label>Hello</label>
+                <button class="destroy"></button>
+            </li>
+            <li><input class="toggle" type="checkbox" checked=""> <label>Hi there!</label>
+                <button class="destroy"></button>
+            </li>
+        </ul>
+        <footer class="footer">
+            <span class="todo-count"></span>
+            <div class="filters">
+                <a id="filter-all" href="#/" class="selected">All</a>
+                <a id="filter-active" href="#/active">Active</a>
+                <a id="filter-completed" href="#/completed">Completed</a>
+            </div>
+            <button class="clear-completed">Clear completed</button>
+        </footer>
+    </section>
+</section>
+
+<footer class="info">
+    <p>Double-click to edit a todo</p>
+    <p>Created by <a href="http://twitter.com/oscargodson">Oscar Godson</a></p>
+    <p>Refactored by <a href="https://github.com/cburgmer">Christoph Burgmer</a></p>
+    <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+</footer>
+
+<script>
+    //
+    // Predefined state
+    //
+
+    var initialState = {
+        todos: [
+            {text: 'Hi', completed: true},
+            {text: 'Hello', completed: false},
+            {text: 'Hi there!', completed: true},
+        ],
+        filter: 'all'
+    };
+
+
+    var State = function (initialTodos, initialFilter) {
+        this._todos = initialTodos;
+        this._filter = initialFilter;
+    };
+
+    // State.addTodo = function () {
+    //
+    // }; toto taky funguje ale je to míň šetrný k paměti
+
+
+    // toto je šetrnější k paměti
+    State.prototype.addTodo = function (todo) {
+        this._todos.push({text: todo, completed: false});
+    };
+    State.prototype.setFilter = function (newFilter) {
+        this._filter = newFilter;
+    };
+    State.prototype.getTodos = function () {
+        // debugger
+        var callback = function (todo) {
+            // console.log(this._filter);
+            if (this._filter === 'all') {
+                return true;
+            } else if (this._filter === 'completed') {
+                return todo.completed;
+            } else if (this._filter === 'active') {
+                return !todo.completed;
+            }
+        };
+
+        var bindedCallback = callback.bind(this);
+
+        return this._todos.filter(bindedCallback);
+    };
+
+
+    var state = new State(initialState.todos, initialState.filter);
+
+    //
+    // Prepare todos html
+    //
+
+    /*
+        Template example:
+        <li>
+            <input class="toggle" type="checkbox" checked>
+            <label>aaa</label>
+            <button class="destroy"></button>
+        </li>
+    */
+
+    function createHtmlWithCreateElement(todos, targetEl) {
+        targetEl.innerHTML = ''
+
+        for (var i = 0; i < todos.length; i++) {
+            var todo = todos[i];
+
+            // Prepare elements
+            var inputEl = document.createElement('input');
+            inputEl.classList.add('toggle');
+            inputEl.type = 'checkbox';
+            inputEl.checked = todo.completed;
+
+            var labelEl = document.createElement('label');
+            labelEl.innerHTML = todo.text;
+
+            var buttonEl = document.createElement('button');
+            buttonEl.classList.add('destroy');
+
+            // Append these elements to the todo wrapper element
+            var todoEl = document.createElement('li');
+            todoEl.appendChild(inputEl);
+            todoEl.appendChild(labelEl);
+            todoEl.appendChild(buttonEl);
+
+            // Append todo to the page
+            targetEl.appendChild(todoEl);
+        }
+    }
+
+    function createHtmlWithStrings(todos, targetEl) {
+        targetEl.innerHTML = ''
+
+        for (var i = 0; i < todos.length; i++) {
+            var todo = todos[i];
+
+            var html =
+                '<li>' +
+                '  <input class="toggle" type="checkbox" ' + (todo.completed ? 'checked' : '') + '>' +
+                '  <label>' + todo.text + '</label>' +
+                '  <button class="destroy"></button>' +
+                '</li>';
+
+            targetEl.insertAdjacentHTML('beforeend', html);
+        }
+    }
+
+    //
+    // Append todos html into the page
+    //
+
+    var todoListEl = document.querySelector('.todo-list')
+    // createHtmlWithCreateElement(state.todos, todoListEl);
+    createHtmlWithStrings(initialState.todos, todoListEl);
+
+    //
+    // Handle main input
+    //
+
+    // TODO
+
+    //
+    // Prototype expansion
+    //
+
+    // Add method on Object prototype. This method will modify the object
+    // and add current timestamp to it. All created objects inherit from
+    // Object prototype and will have this method.
+    Object.prototype.addTimestamp = function () {
+        this.timestamp = Date.now();
+    };
+    // You should generally avoid modifying prototypes of basic JavaScript
+    // objects, see: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
+    // But it can be sometimes useful, for example, if we want to polyfill
+    // some language feature to older browsers.
+
+    //
+    // Handle filters
+    //
+
+    var filters = {
+        all: document.querySelector('#filter-all'),
+        active: document.querySelector('#filter-active'),
+        completed: document.querySelector('#filter-completed')
+    };
+
+
+    function filtersClick(newFilterType) {
+        for (var k in filters) {
+            if (filters.hasOwnProperty(k)) {
+                var filter = filters[k];
+                filter.classList.remove("selected");
+            }
+        }
+        filters[newFilterType].classList.add("selected");
+
+        state.setFilter(newFilterType);
+
+        createHtmlWithStrings(state.getTodos(), todoListEl);
+    }
+
+
+    for (var filterName in filters) {
+        // TODO
+        var filterElement = filters[filterName];
+        if (filters.hasOwnProperty(filterName)) {
+            // vytvořené ife kvůli posraným VARům, v ES6 je tohle už fixnutý
+            (function (capturedFilterName) {
+                filterElement.addEventListener('click', function (e) {
+                    filtersClick(capturedFilterName);
+                });
+            })(filterName);
+        }
+    }
+
+    (function (element) {
+        element.addEventListener('keypress', function (e) {
+            // console.log(e);
+            if (e.key === 'Enter')
+                enterClick(element);
+        })
+    })(document.querySelector('.new-todo'));
+
+    function enterClick(input) {
+        state.addTodo(input.value);
+        filtersClick(state._filter);
+        input.value = "";
+    }
+
+
+</script>
+
+
+</body>
+</html>

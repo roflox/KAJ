@@ -1,16 +1,17 @@
-import setPrototypeOf = Reflect.setPrototypeOf;
-
-function getRandomInt(max) {
-    return Math.floor(Math.random() * Math.floor(max));
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 class Game {
     private _player: Player = new Player();
     private _world: World;
     private _running: boolean = false;
-    private _imageSizes: number = 40;
+    private _imageSizes: number = 60;
     private _maxWidth: number = 950;
     private _maxHeight: number = 620;
+    private _virusInterval;
 
     constructor(images: HTMLImageElement[]) {
         this._world = new World(document.querySelector("canvas"), images, this._imageSizes);
@@ -26,10 +27,18 @@ class Game {
 
     }
 
+    restart() {
+        this._player = new Player();
+        this._world.restartWorld();
+        this._running = false;
+        clearInterval(this._virusInterval);
+        this.updateScoreBoard();
+    }
+
     start() {
         if (!this._running) {
             this._running = true;
-            setInterval(() => {
+            this._virusInterval = setInterval(() => {
                 this.createVirus()
             }, 3000);
         } else {
@@ -44,27 +53,26 @@ class Game {
                 if (Math.abs(x - virus.pos.x) < this._imageSizes && Math.abs(y - virus.pos.y) < this._imageSizes) {
                     this._player.scored();
                     this._world.destroyVirus(true);
-                } else {
-                    this._player.missed();
                 }
-            } else {
-                this._player.missed();
+                this.updateScoreBoard();
+                // console.log(this._player);
             }
-            this.updateScoreBoard();
-            // console.log(this._player);
         }
     }
 
+
     private createVirus() {
         console.log("creating virus");
-        this._world.addVirus(new Virus(getRandomInt(this._maxWidth), getRandomInt(this._maxHeight)));
+        this._world.addVirus(new Virus(getRandomInt(this._player.fails * 20, this._maxWidth - this._imageSizes), getRandomInt(0, this._maxHeight - this._imageSizes)));
         setTimeout(() => {
             if (!this._world.destroyVirus(false)) {
                 this._player.missed();
+                this._world.increaseRedPixels();
             }
             this.updateScoreBoard();
         }, 2000);
-    };
+    }
+    ;
 
     private updateScoreBoard() {
         document.querySelector("#score").textContent = this._player.score.toString();
@@ -98,8 +106,9 @@ class World {
     private readonly _canvas: HTMLCanvasElement;
     private readonly _ctx: CanvasRenderingContext2D;
     private readonly _viruses: Virus[] = [];
-    private cursorX: number;
-    private cursorY: number;
+    private _cursorX: number;
+    private _cursorY: number;
+    private _redPixels: number = 0;
 
     constructor(_canvas: HTMLCanvasElement, private readonly _images: HTMLImageElement[], private readonly _imageSizes) {
         this._canvas = _canvas;
@@ -107,7 +116,20 @@ class World {
         this.drawCanvas();
     }
 
-    drawCanvas() {
+    public increaseRedPixels() {
+        this._redPixels += 20;
+    }
+
+    public restartWorld() {
+        this._redPixels = 0;
+        this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+        this._ctx.drawImage(this._images[0], 10, 10);
+        if (this._viruses.length < 0) {
+            this._viruses.pop();
+        }
+    }
+
+    private drawCanvas() {
         images[0].onload = () => {
             this._ctx.drawImage(this._images[0], 10, 10);
         }
@@ -117,13 +139,18 @@ class World {
         return this._viruses[0];
     }
 
-    resetCanvas() {
+    private redrawCanvas() {
         this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
         this._ctx.drawImage(this._images[0], 10, 10);
+        const grd = this._ctx.createLinearGradient(0, 0, 620, 0);
+        grd.addColorStop(0, "red");
+        grd.addColorStop(1, "white");
+        this._ctx.fillStyle = grd;
+        this._ctx.fillRect(0, 0, this._redPixels, 620);
         for (const virus of this._viruses) {
             this._ctx.drawImage(this._images[2], virus.pos.x, virus.pos.y, this._imageSizes, this._imageSizes);
         }
-        this._ctx.drawImage(this._images[1], this.cursorX, this.cursorY, this._imageSizes, this._imageSizes);
+        this._ctx.drawImage(this._images[1], this._cursorX, this._cursorY, this._imageSizes, this._imageSizes);
 
     }
 
@@ -140,7 +167,7 @@ class World {
         } else {
             poped = false;
         }
-        this.resetCanvas();
+        this.redrawCanvas();
         return !(poped && !killed);
     }
 
@@ -149,9 +176,9 @@ class World {
     }
 
     drawCross(x: number, y: number) {
-        this.resetCanvas();
-        this.cursorX = x - 15;
-        this.cursorY = y - 15;
+        this.redrawCanvas();
+        this._cursorX = x - 15;
+        this._cursorY = y - 15;
     }
 }
 
@@ -166,7 +193,7 @@ class Virus {
 }
 
 const imageSources: string[] = ["http://seznam.github.io/CVUT/KAJ/cviceni/04/corona/world-map.svg", "http://seznam.github.io/CVUT/KAJ/cviceni/04/corona/cr.png", "http://seznam.github.io/CVUT/KAJ/cviceni/04/corona/Corona.png"];
-const images = [new Image, new Image(), new Image()];
+const images = [new Image(), new Image(), new Image()];
 images.forEach((img, index) => {
     img.src = imageSources[index];
 });
@@ -177,4 +204,8 @@ console.log(game);
 
 document.querySelector("#new-game").addEventListener("click", () => {
     game.start();
+});
+
+document.querySelector("#restart-game").addEventListener("click", () => {
+    game.restart();
 });

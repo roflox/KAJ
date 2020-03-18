@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "sourceMap": true,
+    "watch": true,
+    "outDir": "out",
+    "rootDir": "src",
+    "lib": ["dom","es7"]
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}

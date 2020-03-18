@@ -12,9 +12,10 @@ class Game {
     private _maxWidth: number = 950;
     private _maxHeight: number = 620;
     private _virusInterval;
+    private _redPixelMultiplier = 19;
 
     constructor(images: HTMLImageElement[]) {
-        this._world = new World(document.querySelector("canvas"), images, this._imageSizes);
+        this._world = new World(document.querySelector("canvas"), images, this._imageSizes, this._redPixelMultiplier);
         this._world.canvas.addEventListener("mousemove", (e: MouseEvent) => {
             // console.log(`x:${e.clientX}, y:${e.clientY}`);
             // this._canvas.drawCross(e.clientX, e.clientY);
@@ -39,11 +40,19 @@ class Game {
         if (!this._running) {
             this._running = true;
             this._virusInterval = setInterval(() => {
+                if (this._player.fails === 49) {
+                    this.gameOver();
+                }
                 this.createVirus()
-            }, 3000);
+            }, 2000);
         } else {
             alert("game is already running");
         }
+    }
+
+    private gameOver() {
+        console.log("GAME OVER, YOU LOOSER!");
+        this.restart();
     }
 
     private shoot(x: number, y: number) {
@@ -62,15 +71,15 @@ class Game {
 
 
     private createVirus() {
-        console.log("creating virus");
-        this._world.addVirus(new Virus(getRandomInt(this._player.fails * 20, this._maxWidth - this._imageSizes), getRandomInt(0, this._maxHeight - this._imageSizes)));
+        // console.log("creating virus");
+        this._world.addVirus(new Virus(getRandomInt(0, this._maxWidth - this._imageSizes), getRandomInt(0, this._maxHeight - this._imageSizes)));
         setTimeout(() => {
             if (!this._world.destroyVirus(false)) {
                 this._player.missed();
                 this._world.increaseRedPixels();
             }
             this.updateScoreBoard();
-        }, 2000);
+        }, 1000);
     }
     ;
 
@@ -110,14 +119,15 @@ class World {
     private _cursorY: number;
     private _redPixels: number = 0;
 
-    constructor(_canvas: HTMLCanvasElement, private readonly _images: HTMLImageElement[], private readonly _imageSizes) {
+    constructor(_canvas: HTMLCanvasElement, private readonly _images: HTMLImageElement[], private readonly _imageSizes, private readonly _redPixelsMultiplier) {
         this._canvas = _canvas;
         this._ctx = this._canvas.getContext("2d");
         this.drawCanvas();
     }
 
     public increaseRedPixels() {
-        this._redPixels += 20;
+        this._redPixels += this._redPixelsMultiplier;
+        this.redrawCanvas();
     }
 
     public restartWorld() {
@@ -142,10 +152,7 @@ class World {
     private redrawCanvas() {
         this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
         this._ctx.drawImage(this._images[0], 10, 10);
-        const grd = this._ctx.createLinearGradient(0, 0, 620, 0);
-        grd.addColorStop(0, "red");
-        grd.addColorStop(1, "white");
-        this._ctx.fillStyle = grd;
+        this._ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
         this._ctx.fillRect(0, 0, this._redPixels, 620);
         for (const virus of this._viruses) {
             this._ctx.drawImage(this._images[2], virus.pos.x, virus.pos.y, this._imageSizes, this._imageSizes);

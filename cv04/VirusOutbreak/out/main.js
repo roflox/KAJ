@@ -10,7 +10,8 @@ class Game {
         this._imageSizes = 60;
         this._maxWidth = 950;
         this._maxHeight = 620;
-        this._world = new World(document.querySelector("canvas"), images, this._imageSizes);
+        this._redPixelMultiplier = 19;
+        this._world = new World(document.querySelector("canvas"), images, this._imageSizes, this._redPixelMultiplier);
         this._world.canvas.addEventListener("mousemove", (e) => {
             // console.log(`x:${e.clientX}, y:${e.clientY}`);
             // this._canvas.drawCross(e.clientX, e.clientY);
@@ -32,12 +33,19 @@ class Game {
         if (!this._running) {
             this._running = true;
             this._virusInterval = setInterval(() => {
+                if (this._player.fails === 49) {
+                    this.gameOver();
+                }
                 this.createVirus();
-            }, 3000);
+            }, 2000);
         }
         else {
             alert("game is already running");
         }
+    }
+    gameOver() {
+        console.log("GAME OVER, YOU LOOSER!");
+        this.restart();
     }
     shoot(x, y) {
         if (this._running) {
@@ -53,15 +61,15 @@ class Game {
         }
     }
     createVirus() {
-        console.log("creating virus");
-        this._world.addVirus(new Virus(getRandomInt(this._player.fails * 20, this._maxWidth - this._imageSizes), getRandomInt(0, this._maxHeight - this._imageSizes)));
+        // console.log("creating virus");
+        this._world.addVirus(new Virus(getRandomInt(0, this._maxWidth - this._imageSizes), getRandomInt(0, this._maxHeight - this._imageSizes)));
         setTimeout(() => {
             if (!this._world.destroyVirus(false)) {
                 this._player.missed();
                 this._world.increaseRedPixels();
             }
             this.updateScoreBoard();
-        }, 2000);
+        }, 1000);
     }
     ;
     updateScoreBoard() {
@@ -89,9 +97,10 @@ class Player {
     }
 }
 class World {
-    constructor(_canvas, _images, _imageSizes) {
+    constructor(_canvas, _images, _imageSizes, _redPixelsMultiplier) {
         this._images = _images;
         this._imageSizes = _imageSizes;
+        this._redPixelsMultiplier = _redPixelsMultiplier;
         this._viruses = [];
         this._redPixels = 0;
         this._canvas = _canvas;
@@ -99,7 +108,8 @@ class World {
         this.drawCanvas();
     }
     increaseRedPixels() {
-        this._redPixels += 20;
+        this._redPixels += this._redPixelsMultiplier;
+        this.redrawCanvas();
     }
     restartWorld() {
         this._redPixels = 0;
@@ -120,10 +130,7 @@ class World {
     redrawCanvas() {
         this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
         this._ctx.drawImage(this._images[0], 10, 10);
-        const grd = this._ctx.createLinearGradient(0, 0, 620, 0);
-        grd.addColorStop(0, "red");
-        grd.addColorStop(1, "white");
-        this._ctx.fillStyle = grd;
+        this._ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
         this._ctx.fillRect(0, 0, this._redPixels, 620);
         for (const virus of this._viruses) {
             this._ctx.drawImage(this._images[2], virus.pos.x, virus.pos.y, this._imageSizes, this._imageSizes);

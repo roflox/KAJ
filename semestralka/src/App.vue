@@ -1,12 +1,12 @@
 <template>
     <div id="app">
-        <password-store></password-store>
+        <password-store/>
     </div>
 </template>
 
 <script>
 
-    import PasswordStore from "./components/PasswordStore.vue";
+    import PasswordStore from "./components/SecretStore.vue";
 
 
     export default {

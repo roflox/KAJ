@@ -32,17 +32,18 @@ class Game {
 
     restart() {
         clearInterval(this._virusInterval);
-        this.updateScoreBoard();
         this._player.restartScore();
         this._world.restartWorld();
+        this.updateScoreBoard();
         this._running = false;
+        document.querySelector("#go").classList.add("hidden");
     }
 
     start() {
-        if (!this._running) {
+        if (!this._running && this._player.killed === 0 && this._player.fails === 0) {
             this._running = true;
             this._virusInterval = setInterval(() => {
-                if (this._player.fails >= 49) {
+                if (this._player.fails >= 50) {
                     this.gameOver();
                 } else {
                     this.createVirus()
@@ -55,8 +56,10 @@ class Game {
 
     private gameOver() {
         console.log("GAME OVER, YOU LOOSER!");
-
-        this.restart();
+        clearInterval(this._virusInterval);
+        document.querySelector("#go").classList.remove("hidden");
+        this._running = false;
+        // this.restart();
     }
 
     private shoot(x: number, y: number) {
@@ -181,7 +184,7 @@ class World {
         for (const virus of this._viruses) {
             this._ctx.drawImage(this._images[2], virus.pos.x, virus.pos.y, this._imageSizes, this._imageSizes);
         }
-        this._ctx.drawImage(this._images[1], this._cursorX, this._cursorY, this._imageSizes, this._imageSizes);
+        this._ctx.drawImage(this._images[1], this._cursorX - 15, this._cursorY - 15, this._imageSizes, this._imageSizes);
 
     }
 

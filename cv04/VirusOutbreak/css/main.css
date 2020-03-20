@@ -14,6 +14,33 @@
 /*    background-image: "/data/world-map.svg";*/
 /*}*/
 
-canvas {
+
+.container {
+    position: relative;
+}
+
+#container canvas {
+    position: absolute;
     cursor: none;
+}
+
+.hidden{
+    display: none;
+}
+
+#go {
+    position: absolute;
+    top:310px;
+    left:375px;
+    margin: 0 auto;
+    padding: 10px;
+    width: 200px;
+    text-align: center;
+    border: 1px solid red;
+    background-color: #a00000;;
+    color: #fff;
+}
+
+#board {
+    position: absolute;
 }

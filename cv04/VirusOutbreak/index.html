@@ -14,9 +14,14 @@
         <button id="new-game">New Game</button>
         <button id="restart-game">Restart Game</button>
     </div>
-    <canvas id="cmap" width="950" height="620"
-            style="border:1px solid #d3d3d3;"></canvas>
-    <div class="score-board">
+    <div class="container">
+        <canvas id="cmap" width="950" height="620"
+                style="border:1px solid #d3d3d3;">
+        </canvas>
+        <div class="hidden" id="go">GAME OVER</div>
+    </div>
+
+    <div id="board">
         <div>
             <p>Score: <span id="score">0</span></p>
             <p>Missed: <span id="missed">0</span></p>

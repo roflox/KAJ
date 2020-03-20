@@ -17,11 +17,12 @@
 
 .container {
     position: relative;
+    cursor: none;
 }
 
 #container canvas {
     position: absolute;
-    cursor: none;
+    /*cursor: none;*/
 }
 
 .hidden{

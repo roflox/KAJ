@@ -3,6 +3,9 @@ function getRandomInt(min, max) {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+const promiseTimeout = (milliseconds) => {
+    return new Promise(resolve => setTimeout(() => resolve(), milliseconds));
+};
 class Game {
     constructor(images) {
         this._running = false;
@@ -69,7 +72,7 @@ class Game {
     createVirus() {
         // console.log("creating virus");
         this._world.addVirus(new Virus(getRandomInt(0, this._maxWidth - this._imageSizes), getRandomInt(0, this._maxHeight - this._imageSizes)));
-        setTimeout(() => {
+        promiseTimeout(1000).then(() => {
             if (this._running) {
                 if (!this._world.destroyVirus(false)) {
                     this._player.missed();
@@ -77,7 +80,7 @@ class Game {
                 }
                 this.updateScoreBoard();
             }
-        }, 1000);
+        });
     }
     ;
     updateScoreBoard() {

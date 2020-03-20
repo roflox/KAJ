@@ -4,6 +4,10 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+const promiseTimeout = (milliseconds) => {
+    return new Promise(resolve => setTimeout(() => resolve(), milliseconds));
+};
+
 class Game {
     private _player: Player;
     private _world: World;
@@ -17,7 +21,6 @@ class Game {
     constructor(images: HTMLImageElement[]) {
         this._world = new World(document.querySelector("canvas"), images, this._imageSizes, this._redPixelMultiplier);
         this._player = new Player();
-
 
         this._world.canvas.addEventListener("mousemove", (e: MouseEvent) => {
             // console.log(`x:${e.clientX}, y:${e.clientY}`);
@@ -80,16 +83,17 @@ class Game {
     private createVirus() {
         // console.log("creating virus");
         this._world.addVirus(new Virus(getRandomInt(0, this._maxWidth - this._imageSizes), getRandomInt(0, this._maxHeight - this._imageSizes)));
-        setTimeout(() => {
-            if (this._running) {
-                if (!this._world.destroyVirus(false)) {
-                    this._player.missed();
-                    this._world.increaseRedPixels();
-                }
-                this.updateScoreBoard();
-            }
-        }, 1000);
 
+        promiseTimeout(1000).then(() => {
+                if (this._running) {
+                    if (!this._world.destroyVirus(false)) {
+                        this._player.missed();
+                        this._world.increaseRedPixels();
+                    }
+                    this.updateScoreBoard();
+                }
+            }
+        )
     }
     ;
 

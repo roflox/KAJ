@@ -1,3 +1,3 @@
-Použil jsem canvas, jelikož mì nanapadlo, že to lze udìlat jenom pøes posouvání pozice v CSS. Už jsem nevìdìl jestli to mám pøedìlávát nebo ne. Ve tøídách to mám, ale nevím, jestli je to úplnì optimální a nejsem si jistý jestli tam nemám nìjaké anitpaterny.  
+Pouï¿½il jsem canvas, jelikoï¿½ mï¿½ nanapadlo, ï¿½e to lze udï¿½lat jenom pï¿½es posouvï¿½nï¿½ pozice v CSS. Uï¿½ jsem nevï¿½dï¿½l jestli to mï¿½m pï¿½edï¿½lï¿½vï¿½t nebo ne. Ve tï¿½ï¿½dï¿½ch to mï¿½m, ale nevï¿½m, jestli je to ï¿½plnï¿½ optimï¿½lnï¿½ a nejsem si jistï¿½ jestli tam nemï¿½m nï¿½jakï¿½ anitpaterny.  
 
-V aplikaci jsem zkoušel pøidat ovládání na klávesnici, ale pøišlo mi to nehratelné.
+V aplikaci jsem zkouï¿½el pï¿½idat ovlï¿½dï¿½nï¿½ na klï¿½vesnici, ale pï¿½iï¿½lo mi to nehratelnï¿½. PÅ™Ã­padnÄ› jsem to schopnÃ½ dodÄ›lat.

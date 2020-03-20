@@ -5,7 +5,7 @@ function getRandomInt(min, max) {
 }
 
 class Game {
-    private _player: Player = new Player();
+    private _player: Player;
     private _world: World;
     private _running: boolean = false;
     private _imageSizes: number = 60;
@@ -16,6 +16,9 @@ class Game {
 
     constructor(images: HTMLImageElement[]) {
         this._world = new World(document.querySelector("canvas"), images, this._imageSizes, this._redPixelMultiplier);
+        this._player = new Player();
+
+
         this._world.canvas.addEventListener("mousemove", (e: MouseEvent) => {
             // console.log(`x:${e.clientX}, y:${e.clientY}`);
             // this._canvas.drawCross(e.clientX, e.clientY);
@@ -25,33 +28,34 @@ class Game {
             // console.log(e.offsetX, e.offsetY);
             this.shoot(e.offsetX, e.offsetY)
         });
-
     }
 
     restart() {
-        this._player = new Player();
-        this._world.restartWorld();
-        this._running = false;
         clearInterval(this._virusInterval);
         this.updateScoreBoard();
+        this._player.restartScore();
+        this._world.restartWorld();
+        this._running = false;
     }
 
     start() {
         if (!this._running) {
             this._running = true;
             this._virusInterval = setInterval(() => {
-                if (this._player.fails === 49) {
+                if (this._player.fails >= 49) {
                     this.gameOver();
+                } else {
+                    this.createVirus()
                 }
-                this.createVirus()
             }, 2000);
         } else {
-            alert("game is already running");
+            // alert("game is already running");
         }
     }
 
     private gameOver() {
         console.log("GAME OVER, YOU LOOSER!");
+
         this.restart();
     }
 
@@ -74,36 +78,58 @@ class Game {
         // console.log("creating virus");
         this._world.addVirus(new Virus(getRandomInt(0, this._maxWidth - this._imageSizes), getRandomInt(0, this._maxHeight - this._imageSizes)));
         setTimeout(() => {
-            if (!this._world.destroyVirus(false)) {
-                this._player.missed();
-                this._world.increaseRedPixels();
+            if (this._running) {
+                if (!this._world.destroyVirus(false)) {
+                    this._player.missed();
+                    this._world.increaseRedPixels();
+                }
+                this.updateScoreBoard();
             }
-            this.updateScoreBoard();
         }, 1000);
+
     }
     ;
 
     private updateScoreBoard() {
         document.querySelector("#score").textContent = this._player.score.toString();
         document.querySelector("#missed").textContent = this._player.fails.toString();
+        document.querySelector("#killed").textContent = this._player.killed.toString();
     }
 }
 
 class Player {
-    private _score: number = 0;
     private _fails: number = 0;
+    private _killedViruses: number = 0;
+
+    constructor() {
+        document.querySelector("#new-game").addEventListener("click", () => {
+            game.start();
+        });
+
+        document.querySelector("#restart-game").addEventListener("click", () => {
+            game.restart();
+        });
+    }
 
     get score(): number {
-        return this._score;
+        return this._killedViruses - this._fails;
+    }
+
+    get killed(): number {
+        return this._killedViruses;
     }
 
     scored() {
-        this._score++;
+        this._killedViruses++;
     }
 
     missed() {
         this._fails++;
-        this._score--;
+    }
+
+    restartScore() {
+        this._fails = 0;
+        this._killedViruses = 0;
     }
 
     get fails(): number {
@@ -114,7 +140,7 @@ class Player {
 class World {
     private readonly _canvas: HTMLCanvasElement;
     private readonly _ctx: CanvasRenderingContext2D;
-    private readonly _viruses: Virus[] = [];
+    private _viruses: Virus[] = [];
     private _cursorX: number;
     private _cursorY: number;
     private _redPixels: number = 0;
@@ -134,9 +160,7 @@ class World {
         this._redPixels = 0;
         this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
         this._ctx.drawImage(this._images[0], 10, 10);
-        if (this._viruses.length < 0) {
-            this._viruses.pop();
-        }
+        this._viruses = [];
     }
 
     private drawCanvas() {
@@ -207,12 +231,4 @@ images.forEach((img, index) => {
 
 const game = new Game(images);
 
-console.log(game);
-
-document.querySelector("#new-game").addEventListener("click", () => {
-    game.start();
-});
-
-document.querySelector("#restart-game").addEventListener("click", () => {
-    game.restart();
-});
+// console.log(game)

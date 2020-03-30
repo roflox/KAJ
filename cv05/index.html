@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Lecture 05</title>
+</head>
+<body data-gr-c-s-loaded="true">
+<section>
+    <h2>Star Wars</h2>
+    <ul id="star-wars"></ul>
+</section>
+
+<section>
+    <h2>Chat</h2>
+    <p>
+        <textarea id="chat" rows="10" cols="40" readonly=""></textarea>
+    </p>
+    <p>
+        <input type="text" id="chat-input">
+    </p>
+</section>
+
+<section>
+    <h2>Mapy.cz</h2>
+    <ul id="mapy"></ul>
+</section>
+
+<script>
+
+    const STAR_WARS_API_URL = "https://swapi.co/api/people/";
+    const UL = document.getElementById("star-wars");
+    const CONSOLE_CONSTANT = "color:red;font-family:system-ui;font-size:2rem;-webkit-text-stroke: 1px black;font-weight:bold";
+    const WS_URL = "ws://salty-peak-74076.herokuapp.com/";
+    const CHAT = document.getElementById("chat");
+    const INPUT = document.getElementById("chat-input");
+    const MAPY_URL = "https://api.mapy.cz/geocode?query=praha";
+    const MAPY_UL = document.getElementById("mapy");
+
+    // THIS IS MAIN TASK 1
+    const createLi = (ul, content) => {
+        const li = document.createElement("li");
+        li.innerText = content;
+        ul.appendChild(li);
+    };
+
+    const listener = () => {
+        // console.table(req.response);
+        let response = JSON.parse(req.response);
+        // response.results.forEach(h => createLi(ul, h.name));
+        console.trace("%cPRVNÍ ÚKOL", CONSOLE_CONSTANT);
+        console.table(response.results.map(h => h.name));
+    };
+    let req = new XMLHttpRequest();
+    req.addEventListener("load", listener);
+    req.open("GET", STAR_WARS_API_URL);
+    req.send();
+
+
+    // THIS IS MAIN TASK 2
+
+
+    // const ul = document.getElementById("star-wars");
+    const myRequest = (url) => {
+        let request = new XMLHttpRequest();
+        return new Promise((resolve, reject) => {
+            request.onreadystatechange = () => {
+                if (request.readyState !== 4) {
+                    return;
+                }
+
+                if (request.status >= 200 && request.status < 300) {
+                    resolve(request);
+                } else {
+                    reject({
+                        statusCode: request.status,
+                        message: request.statusText
+                    })
+                }
+            };
+            request.open("GET", url);
+            request.send();
+        })
+    };
+
+    myRequest(STAR_WARS_API_URL)
+        .then((request) => {
+            const resp = JSON.parse(request.response);
+            console.trace("%cDRUHÝ ÚKOL", CONSOLE_CONSTANT);
+            console.table(resp.results.map(h => h.name));
+        })
+        .catch((e) => {
+            console.log(e)
+        });
+
+    // THIS IS MAIN TASK 3 & 4
+    (async () => {
+        //3 & 4.1
+        const request = await fetch(STAR_WARS_API_URL);
+        const response = JSON.parse(await request.text());
+        console.trace("%cTŘETÍ ÚKOL", CONSOLE_CONSTANT);
+        console.table(response.results.map(h => h.name));
+
+        //4.2
+        const req = await myRequest(STAR_WARS_API_URL);
+        const data = JSON.parse(req.response);
+        console.trace("%cČTVRTÝ ÚKOL", CONSOLE_CONSTANT);
+        console.table(data.results.map(h => h.name));
+        for (const h of data.results) {
+            createLi(UL, h.name);
+        }
+    })();
+
+
+    //BONUS TASKS
+
+
+    // 1
+
+    try {
+        const socket = new WebSocket(WS_URL);
+        socket.onopen = () => {
+            INPUT.addEventListener("keypress", (e) => {
+                if (e.key === "Enter" && INPUT.value) {
+                    socket.send(INPUT.value);
+                    INPUT.value = "";
+                }
+            });
+        };
+        socket.onmessage = (e) => {
+            CHAT.textContent += e.data + "\n";
+        };
+
+    } catch (e) {
+        console.error(e);
+    }
+
+    // 2
+    (async () => {
+        const req = await fetch(MAPY_URL);
+        const parser = new DOMParser();
+        const res = await req.text();
+        const parsed = parser.parseFromString(res, "text/xml");
+        const items = parsed.getElementsByTagName("item");
+        for (const item of items){
+            const elem = document.createElement("ul");
+            elem.innerText = `Title: ${item.getAttribute("title")}
+             x:${item.getAttribute("x")}, y:${item.getAttribute("y")}`;
+            elem.id = `mapId-${item.id}`;
+            MAPY_UL.appendChild(elem);
+        }
+    })();
+
+
+    /*
+        urls:
+            HTTP API with JSON response of StarWars characters
+                https://swapi.co/api/people/
+            WebSocket API with text messages
+                ws://salty-peak-74076.herokuapp.com/
+            HTTP API with XML response of places matching given query
+                https://api.mapy.cz/geocode?query=praha
+
+        Main tasks
+            1. Use XMLHttpRequest to create HTTP request and get data from StarWarsApi
+                1. Parse StarWars data
+                2. Transform the data into list of character names
+                    ["Luke Skywalker", "C-3PO", ...]
+                3. Render character names into the list - <ul id="star-wars"></ul>
+            2. Create function that fetches data with XMLHttpRequest but exposes Promises interface.
+                myRequest(url)
+                    .then(response => {
+                        // ok state
+                    })
+                    .catch(error => {
+                        // error states
+                    })
+
+                1. For rendering the Star-Wars characters - switch from XMLHttpRequest to your "myRequest" function
+            3. Try to use browser's fetch API
+                1. For rendering the Star-Wars characters - try to switch to browsers fetch API
+            4. Try to use async/await for interaction with
+                1. myRequest
+                2. fetch
+
+        Bonus Tasks
+            1. Websocket chat
+                1. Connect to WebSocket API
+                2. When messages comes in, render it to the - <textarea id="chat">
+                3. When user types in text in <input type="text" id="chat-input"> and presses enter, send the message to the chat
+            2. Mapy.cz API with XML response
+                1. Fetch the data, the idea is the same, except we get XML instead of JSON as a response
+    */
+
+</script>
+
+
+</body>
+</html>
